@@ -7,7 +7,7 @@ edition = "2024"
 # --- Axum Web Ecosystem ---
 axum = "0.8"                    # Core web framework
 tokio = { version = "1.45", features = ["macros", "rt-multi-thread", "net"] } # Async runtime
-tower-http = { version = "0.6", features = ["trace"] } # Request tracing middleware
+tower-http = { version = "0.6", features = ["trace", "cors"] } # Request tracing middleware
 
 # --- Configuration & Environment (Viper Replacements) ---
 serde = { version = "1.0", features = ["derive"] } # Engine to serialize/deserialize structs

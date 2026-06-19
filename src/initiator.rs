@@ -17,6 +17,7 @@ use tokio::net::TcpListener;
 use tower_http::trace::TraceLayer;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
+use tower_http::cors::{Any, CorsLayer};
 
 /// Layer 1: Storage Layer Container
 #[derive(Clone)]
@@ -128,7 +129,21 @@ impl AppInitiator {
             "{}",
             "════════════════════════════════════════════════════".dimmed()
         );
-        println!("");
+      
+
+        let cors = CorsLayer::new()
+        .allow_origin(Any)   // Allow requests from any domain
+        .allow_methods(Any)  // Allow any HTTP method (GET, POST, etc.)
+        .allow_headers(Any);
+
+        let app: Router = internal::routes::configure_routes(&initiator.handlers)
+            .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
+            .layer(TraceLayer::new_for_http())
+            .layer(cors);
+        let addr = SocketAddr::from(([127, 0, 0, 1], bind_port));
+        let listener = TcpListener::bind(addr).await?;
+
+          println!("");
         println!(
             "  ✓ Server listening on: {}",
             format!("http://localhost:{}", bind_port)
@@ -153,12 +168,6 @@ impl AppInitiator {
             "{}",
             "════════════════════════════════════════════════════".dimmed()
         );
-
-        let app: Router = internal::routes::configure_routes(&initiator.handlers)
-            .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
-            .layer(TraceLayer::new_for_http());
-        let addr = SocketAddr::from(([127, 0, 0, 1], bind_port));
-        let listener = TcpListener::bind(addr).await?;
 
         axum::serve(listener, app).await
     }
