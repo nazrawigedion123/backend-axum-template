@@ -1,6 +1,8 @@
-// src/internal/handler/user_handler.rs
 use crate::internal::constant::dto::{ApiResponse, CreateUserRequest};
+use crate::internal::constant::errors::AppError;
+use crate::internal::handler::UserHandlerTrait;
 use crate::internal::module::UserService;
+use crate::internal::storage::user_storage::UserModel;
 use axum::{
     Json,
     extract::{Path, State},
@@ -9,7 +11,6 @@ use axum::{
 use std::sync::Arc;
 use uuid::Uuid;
 
-/// Concrete implementation wrapper holding references to our business modules
 pub struct UserHandler {
     user_service: Arc<dyn UserService>,
 }
@@ -19,21 +20,32 @@ impl UserHandler {
         Self { user_service }
     }
 
-    /// POST /api/v1/users
     pub async fn create_user(
         State(handler): State<Arc<Self>>,
         Json(payload): Json<CreateUserRequest>,
-    ) -> Result<
-        (
-            StatusCode,
-            Json<ApiResponse<crate::internal::storage::user_storage::UserModel>>,
-        ),
-        crate::internal::constant::errors::AppError,
-    > {
-        // Logging context automatically captures the trace IDs inherited from middleware
+    ) -> Result<(StatusCode, Json<ApiResponse<UserModel>>), AppError> {
+        handler.create_user(payload).await
+    }
+
+    pub async fn get_user(
+        Path(raw_id): Path<String>,
+        State(handler): State<Arc<Self>>,
+    ) -> Result<Json<ApiResponse<UserModel>>, AppError> {
+        let target_uuid = Uuid::parse_str(&raw_id)
+            .map_err(|_| AppError::ValidationError("Invalid UUID format".to_string()))?;
+        handler.get_user(target_uuid).await
+    }
+}
+
+#[async_trait::async_trait]
+impl UserHandlerTrait for UserHandler {
+    async fn create_user(
+        &self,
+        payload: CreateUserRequest,
+    ) -> Result<(StatusCode, Json<ApiResponse<UserModel>>), AppError> {
         tracing::info!(username = %payload.username, "HTTP Request received: Create User");
 
-        let user = handler
+        let user = self
             .user_service
             .register_new_user(payload.username.clone(), payload.email.clone())
             .await?;
@@ -47,23 +59,13 @@ impl UserHandler {
         ))
     }
 
-    /// GET /api/v1/users/{id}
-    pub async fn get_user(
-        Path(raw_id): Path<String>,
-        State(handler): State<Arc<Self>>,
-    ) -> Result<
-        Json<ApiResponse<crate::internal::storage::user_storage::UserModel>>,
-        crate::internal::constant::errors::AppError,
-    > {
-        let target_uuid = Uuid::parse_str(&raw_id).map_err(|_| {
-            crate::internal::constant::errors::AppError::ValidationError(
-                "Invalid UUID format".to_string(),
-            )
-        })?;
+    async fn get_user(
+        &self,
+        id: Uuid,
+    ) -> Result<Json<ApiResponse<UserModel>>, AppError> {
+        tracing::info!(%id, "HTTP Request received: Get User by ID");
 
-        tracing::info!(%target_uuid, "HTTP Request received: Get User by ID");
-
-        let user = handler.user_service.get_user_by_id(target_uuid).await?;
+        let user = self.user_service.get_user_by_id(id).await?;
 
         Ok(Json(ApiResponse {
             success: true,

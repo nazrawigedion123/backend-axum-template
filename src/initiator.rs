@@ -2,6 +2,7 @@
 use crate::internal;
 
 use crate::config::AppConfig;
+use crate::internal::handler::user_handler::UserHandler;
 use crate::internal::module::UserService;
 use crate::internal::module::user_service::DefaultUserService;
 use crate::internal::storage::user_storage::DieselUserRepository;
@@ -28,7 +29,7 @@ pub struct Modules {
 /// Layer 3: HTTP Handler Controllers Layer Container
 #[derive(Clone)]
 pub struct Handlers {
-    pub user_handler: Arc<dyn UserService>, // Pass target interface reference needed for endpoint controllers
+    pub user_handler: Arc<UserHandler>,
 }
 
 /// Composition Root Orchestrating all layered inversions of control dependencies
@@ -70,8 +71,9 @@ impl AppInitiator {
         };
 
         // --- Step 3: Initialize Handlers Tier (Injecting Modules) ---
+        let user_handler = Arc::new(UserHandler::new(user_service));
         let handlers = Handlers {
-            user_handler: user_service,
+            user_handler,
         };
 
         Self {
