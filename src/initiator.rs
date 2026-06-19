@@ -8,16 +8,17 @@ use crate::internal::module::UserService;
 use crate::internal::module::user_service::DefaultUserService;
 use crate::internal::storage::user_storage::DieselUserRepository;
 use axum::Router;
+use axum_governor::{GovernorConfigBuilder, GovernorLayer, Quota, extractor::PeerIp, nz};
 use colored::Colorize;
 use diesel_async::AsyncPgConnection;
 use diesel_async::pooled_connection::bb8::Pool;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::net::TcpListener;
+use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
-use tower_http::cors::{Any, CorsLayer};
 
 /// Layer 1: Storage Layer Container
 #[derive(Clone)]
@@ -129,21 +130,27 @@ impl AppInitiator {
             "{}",
             "════════════════════════════════════════════════════".dimmed()
         );
-      
 
+        // set up cors
         let cors = CorsLayer::new()
-        .allow_origin(Any)   // Allow requests from any domain
-        .allow_methods(Any)  // Allow any HTTP method (GET, POST, etc.)
-        .allow_headers(Any);
+            .allow_origin(Any) // Allow requests from any domain
+            .allow_methods(Any) // Allow any HTTP method (GET, POST, etc.)
+            .allow_headers(Any);
+        //set up ratelimiter
+        let config_rate_limiter = GovernorConfigBuilder::default()
+            .quota_default(Quota::requests_per_second(nz!(50u32)))
+            .finish()
+            .unwrap();
 
         let app: Router = internal::routes::configure_routes(&initiator.handlers)
             .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
             .layer(TraceLayer::new_for_http())
-            .layer(cors);
+            .layer(cors)
+            .layer(GovernorLayer::new(config_rate_limiter));
         let addr = SocketAddr::from(([127, 0, 0, 1], bind_port));
         let listener = TcpListener::bind(addr).await?;
 
-          println!("");
+        println!("");
         println!(
             "  ✓ Server listening on: {}",
             format!("http://localhost:{}", bind_port)
