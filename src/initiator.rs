@@ -2,6 +2,7 @@
 use crate::internal;
 
 use crate::config::AppConfig;
+use crate::docs::ApiDoc;
 use crate::internal::handler::user_handler::UserHandler;
 use crate::internal::module::UserService;
 use crate::internal::module::user_service::DefaultUserService;
@@ -14,6 +15,8 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::net::TcpListener;
 use tower_http::trace::TraceLayer;
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
 
 /// Layer 1: Storage Layer Container
 #[derive(Clone)]
@@ -132,6 +135,12 @@ impl AppInitiator {
                 .green()
                 .underline()
         );
+        println!(
+            "  ✓ Swagger UI: {}",
+            format!("http://localhost:{}/swagger-ui", bind_port)
+                .green()
+                .underline()
+        );
         println!("  ✓ Environment: {}", cfg.env.green());
         println!("  ✓ PID: {}", std::process::id().to_string().cyan());
         println!("");
@@ -146,6 +155,7 @@ impl AppInitiator {
         );
 
         let app: Router = internal::routes::configure_routes(&initiator.handlers)
+            .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
             .layer(TraceLayer::new_for_http());
         let addr = SocketAddr::from(([127, 0, 0, 1], bind_port));
         let listener = TcpListener::bind(addr).await?;

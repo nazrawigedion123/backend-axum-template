@@ -30,4 +30,5 @@ futures-util = { version = "0.3", features = ["futures-macro"] }  # diesel-async
 async-trait = "0.1"            # Async trait support for database repository traits
 tower = "0.5.3"
 colored = "3.1.1"
-
+utoipa = { version = "5", features = ["axum_extras", "chrono", "uuid"] }
+utoipa-swagger-ui = { version = "9", features = ["axum"] }

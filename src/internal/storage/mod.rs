@@ -1,4 +1,3 @@
-
 pub mod generated;
 pub mod user_storage;
 

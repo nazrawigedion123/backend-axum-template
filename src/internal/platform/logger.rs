@@ -1,5 +1,5 @@
-use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 use colored::*;
+use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 pub fn startup() {
     println!(
         "{}",

@@ -47,15 +47,20 @@ pub fn configure_routes(handlers: &Handlers) -> Router {
 // }
 
 pub fn register_routes(routes: Vec<Route>) -> Router {
-
-     println!("{}", "════════════════════════════════════════════════════".dimmed());
+    println!(
+        "{}",
+        "════════════════════════════════════════════════════".dimmed()
+    );
     println!("{}", "  📡 R O U T E S".white().bold());
-    println!("{}", "════════════════════════════════════════════════════".dimmed());
+    println!(
+        "{}",
+        "════════════════════════════════════════════════════".dimmed()
+    );
     println!("");
     println!("");
-   
-    let t=routes.len();
-    let r=routes.into_iter().fold(Router::new(), |router, route| {
+
+    let t = routes.len();
+    let r = routes.into_iter().fold(Router::new(), |router, route| {
         println!(
             "✅ Route registered: {} {}",
             route.method.as_str(),
@@ -68,6 +73,4 @@ pub fn register_routes(routes: Vec<Route>) -> Router {
     println!("════════════════════════════════════════════════════");
     println!("");
     r
-
-    
 }

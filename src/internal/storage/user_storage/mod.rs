@@ -3,6 +3,7 @@ use diesel::{ExpressionMethods, Insertable, QueryDsl, Queryable, Selectable};
 use diesel_async::AsyncPgConnection;
 use diesel_async::pooled_connection::bb8::Pool;
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::internal::storage::UserRepository;
@@ -12,7 +13,7 @@ use crate::internal::storage::generated::schema;
 pub type DbPool = Pool<AsyncPgConnection>;
 
 /// Database representation of a User record
-#[derive(Debug, Clone, Queryable, Selectable, Serialize, Deserialize)]
+#[derive(Debug, Clone, Queryable, Selectable, Serialize, Deserialize, ToSchema)]
 #[diesel(table_name = schema::users)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct UserModel {

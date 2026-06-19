@@ -6,6 +6,7 @@ use axum::{
 };
 use serde::Serialize;
 use thiserror::Error;
+use utoipa::ToSchema;
 
 #[derive(Debug, Error)]
 pub enum AppError {
@@ -19,10 +20,10 @@ pub enum AppError {
     ValidationError(String),
 }
 
-#[derive(Debug, Serialize)]
-struct ErrorResponse {
-    success: bool,
-    error: String,
+#[derive(Debug, Serialize, ToSchema)]
+pub struct ErrorResponse {
+    pub success: bool,
+    pub error: String,
 }
 
 // Implement the Axum response trait so errors turn into clean HTTP status codes later
