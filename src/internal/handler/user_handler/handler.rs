@@ -59,10 +59,7 @@ impl UserHandlerTrait for UserHandler {
         ))
     }
 
-    async fn get_user(
-        &self,
-        id: Uuid,
-    ) -> Result<Json<ApiResponse<UserModel>>, AppError> {
+    async fn get_user(&self, id: Uuid) -> Result<Json<ApiResponse<UserModel>>, AppError> {
         tracing::info!(%id, "HTTP Request received: Get User by ID");
 
         let user = self.user_service.get_user_by_id(id).await?;

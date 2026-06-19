@@ -1,11 +1,10 @@
-
 // src/internal/module/user_service.rs
 use crate::internal::constant::errors::AppError;
-use crate::internal::storage::user_storage::{NewUserModel, UserModel};
+use crate::internal::module::UserService;
 use crate::internal::storage::UserRepository;
+use crate::internal::storage::user_storage::{NewUserModel, UserModel};
 use std::sync::Arc;
 use uuid::Uuid;
-use crate::internal::module::UserService;
 
 /// Concrete implementation holding our repository trait object wrapper
 pub struct DefaultUserService {
@@ -30,12 +29,18 @@ impl UserService for DefaultUserService {
         }
     }
 
-    async fn register_new_user(&self, username: String, email: String) -> Result<UserModel, AppError> {
+    async fn register_new_user(
+        &self,
+        username: String,
+        email: String,
+    ) -> Result<UserModel, AppError> {
         tracing::info!(%username, %email, "Executing domain rule: register_new_user constraints validation");
 
         // Example business validation check
         if username.trim().is_empty() || !email.contains('@') {
-            return Err(AppError::ValidationError("Malformed parameter inputs supplied".to_string()));
+            return Err(AppError::ValidationError(
+                "Malformed parameter inputs supplied".to_string(),
+            ));
         }
 
         let new_user = NewUserModel { username, email };

@@ -1,13 +1,9 @@
 
- pub mod user_storage;
 pub mod generated;
+pub mod user_storage;
 
-
-use uuid::Uuid;
 use self::user_storage::{NewUserModel, UserModel};
-
-
-
+use uuid::Uuid;
 
 #[async_trait::async_trait]
 pub trait UserRepository: Send + Sync {

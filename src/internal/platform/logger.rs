@@ -1,10 +1,23 @@
 use tracing_subscriber::{EnvFilter, fmt, prelude::*};
-
+use colored::*;
+pub fn startup() {
+    println!(
+        "{}",
+        "════════════════════════════════════════════════════".dimmed()
+    );
+    println!("{}", "  🚀 A X U M   S E R V E R".white().bold());
+    println!(
+        "{}",
+        "════════════════════════════════════════════════════".dimmed()
+    );
+    println!("");
+}
 /// Initializes the global tracing subscriber with structured JSON formatting.
 /// This acts as the equivalent to your Go Zap production logger setup.
 pub fn init_logger() {
     // 1. Define log filtering levels from the environment (RUST_LOG).
     // Fallback defaults to 'info' globally, and 'debug' for your app module.
+    startup();
     let env_filter = EnvFilter::try_from_default_env()
         .unwrap_or_else(|_| EnvFilter::new("info,backend_axum_template=debug"));
 

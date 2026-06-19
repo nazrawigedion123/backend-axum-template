@@ -1,4 +1,3 @@
-
 use chrono::{DateTime, Utc};
 use diesel::{ExpressionMethods, Insertable, QueryDsl, Queryable, Selectable};
 use diesel_async::AsyncPgConnection;
@@ -31,9 +30,6 @@ pub struct NewUserModel {
     pub username: String,
     pub email: String,
 }
-
-
-
 
 /// Concrete implementation wrapper holding the thread-safe connection pool
 pub struct DieselUserRepository {

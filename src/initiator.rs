@@ -7,6 +7,7 @@ use crate::internal::module::UserService;
 use crate::internal::module::user_service::DefaultUserService;
 use crate::internal::storage::user_storage::DieselUserRepository;
 use axum::Router;
+use colored::Colorize;
 use diesel_async::AsyncPgConnection;
 use diesel_async::pooled_connection::bb8::Pool;
 use std::net::SocketAddr;
@@ -42,8 +43,13 @@ pub struct AppInitiator {
 
 impl AppInitiator {
     pub async fn init(cfg: &AppConfig) -> Self {
-        tracing::info!("Initializing asynchronous connection pool adapters...");
-
+        // tracing::info!("Initializing asynchronous connection pool adapters...");
+        println!("  {} Connecting to database...", "⏳".yellow());
+        println!("  {} Initializing connection pool...", "⏳".yellow());
+        println!(
+            "  {} Initializing asynchronous connection pool adapters...",
+            "⏳".yellow()
+        );
         let manager = diesel_async::pooled_connection::AsyncDieselConnectionManager::<
             AsyncPgConnection,
         >::new(&cfg.database_url);
@@ -56,8 +62,15 @@ impl AppInitiator {
                 panic!("CRITICAL INFRASTRUCTURE FAILURE: Failed to create database connection pool: {err}");
             });
 
-        tracing::info!("Database connection pool established successfully");
+        // tracing::info!("Database connection pool established successfully");
 
+        // Replace tracing::info with stylized println
+        println!(
+            "  {} Database: {}",
+            "✓".green().bold(),
+            "PostgreSQL connected".green()
+        );
+        println!("  {} Connection pool established successfully", "✓".green());
         // --- Step 1: Initialize Storage Tier ---
         let user_repo = Arc::new(DieselUserRepository::new(pool));
         let storage = Storage {
@@ -72,9 +85,7 @@ impl AppInitiator {
 
         // --- Step 3: Initialize Handlers Tier (Injecting Modules) ---
         let user_handler = Arc::new(UserHandler::new(user_service));
-        let handlers = Handlers {
-            user_handler,
-        };
+        let handlers = Handlers { user_handler };
 
         Self {
             storage,
@@ -85,6 +96,16 @@ impl AppInitiator {
 
     pub async fn initiate() -> std::io::Result<()> {
         internal::platform::logger::init_logger();
+        println!(
+            "{}",
+            "════════════════════════════════════════════════════".dimmed()
+        );
+        println!("{}", "  🔧 I N I T I A L I Z I N G".white().bold());
+        println!(
+            "{}",
+            "════════════════════════════════════════════════════".dimmed()
+        );
+        println!("");
 
         // 2. Load system configurations safely via Envy environment layers
         let cfg = AppConfig::load_from_env();
@@ -94,7 +115,35 @@ impl AppInitiator {
         // Cache port configuration for runtime closures
         let bind_port = cfg.server_port;
 
-        tracing::info!("Starting axum production server on port {}...", bind_port);
+        // tracing::info!("Starting axum production server on port {}...", bind_port);
+        println!(
+            "{}",
+            "════════════════════════════════════════════════════".dimmed()
+        );
+        println!("{}", "  🚀 S E R V E R   R U N N I N G".white().bold());
+        println!(
+            "{}",
+            "════════════════════════════════════════════════════".dimmed()
+        );
+        println!("");
+        println!(
+            "  ✓ Server listening on: {}",
+            format!("http://localhost:{}", bind_port)
+                .green()
+                .underline()
+        );
+        println!("  ✓ Environment: {}", cfg.env.green());
+        println!("  ✓ PID: {}", std::process::id().to_string().cyan());
+        println!("");
+        println!(
+            "{}",
+            "════════════════════════════════════════════════════".dimmed()
+        );
+        println!("{}", "  Press Ctrl+C to stop".dimmed());
+        println!(
+            "{}",
+            "════════════════════════════════════════════════════".dimmed()
+        );
 
         let app: Router = internal::routes::configure_routes(&initiator.handlers)
             .layer(TraceLayer::new_for_http());

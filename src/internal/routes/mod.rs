@@ -1,23 +1,73 @@
+pub mod user_routes;
+use colored::*;
+
 use crate::initiator::Handlers;
-use crate::internal::handler::middleware::{append_trace_header_middleware, dummy_auth_middleware};
-use crate::internal::handler::user_handler::UserHandler;
-use axum::{
-    Router, middleware,
-    routing::{get, post},
-};
+use axum::{Router, routing::method_routing::MethodRouter};
+
+pub struct Route {
+    pub path: &'static str,
+    pub method: HttpMethod,
+    pub method_router: MethodRouter,
+}
+
+pub enum HttpMethod {
+    GET,
+    POST,
+    DELETE,
+    PUT,
+    PATCH,
+    HEAD,
+    OPTIONS,
+    ANY,
+}
+impl HttpMethod {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            HttpMethod::GET => "GET",
+            HttpMethod::POST => "POST",
+            HttpMethod::PUT => "PUT",
+            HttpMethod::DELETE => "DELETE",
+            HttpMethod::PATCH => "PATCH",
+            HttpMethod::HEAD => "HEAD",
+            HttpMethod::OPTIONS => "OPTIONS",
+            HttpMethod::ANY => "ANY",
+        }
+    }
+}
 
 pub fn configure_routes(handlers: &Handlers) -> Router {
-    Router::new()
-        .route(
-            "/api/v1/users",
-            post(UserHandler::create_user)
-                .route_layer(middleware::from_fn(append_trace_header_middleware)),
-        )
-        .route(
-            "/api/v1/users/{id}",
-            get(UserHandler::get_user)
-                .route_layer(middleware::from_fn(dummy_auth_middleware))
-                .route_layer(middleware::from_fn(append_trace_header_middleware)),
-        )
-        .with_state(handlers.user_handler.clone())
+    register_routes(user_routes::routes::register_user_routes(handlers))
+}
+
+// pub fn register_routes(routes: Vec<Route>) -> Router {
+//     routes.into_iter().fold(Router::new(),
+//      |router, route| {
+//         router.route(route.path, route.method_router)
+//     })
+// }
+
+pub fn register_routes(routes: Vec<Route>) -> Router {
+
+     println!("{}", "════════════════════════════════════════════════════".dimmed());
+    println!("{}", "  📡 R O U T E S".white().bold());
+    println!("{}", "════════════════════════════════════════════════════".dimmed());
+    println!("");
+    println!("");
+   
+    let t=routes.len();
+    let r=routes.into_iter().fold(Router::new(), |router, route| {
+        println!(
+            "✅ Route registered: {} {}",
+            route.method.as_str(),
+            route.path
+        );
+        router.route(route.path, route.method_router)
+    });
+    println!("════════════════════════════════════════════════════");
+    println!("  Total routes: {}", t);
+    println!("════════════════════════════════════════════════════");
+    println!("");
+    r
+
+    
 }

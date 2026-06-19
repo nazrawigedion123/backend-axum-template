@@ -1,5 +1,5 @@
-pub mod user_handler;
 pub mod middleware;
+pub mod user_handler;
 
 use crate::internal::constant::dto::{ApiResponse, CreateUserRequest};
 use crate::internal::constant::errors::AppError;
@@ -14,7 +14,5 @@ pub trait UserHandlerTrait: Send + Sync {
         payload: CreateUserRequest,
     ) -> Result<(StatusCode, Json<ApiResponse<UserModel>>), AppError>;
 
-    async fn get_user(
-        &self,
-        id: Uuid) -> Result<Json<ApiResponse<UserModel>>, AppError>;
+    async fn get_user(&self, id: Uuid) -> Result<Json<ApiResponse<UserModel>>, AppError>;
 }

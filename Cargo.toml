@@ -28,3 +28,6 @@ uuid = { version = "1.11", features = ["v4", "serde"] } # ID generation mapped d
 thiserror = "2.0"               # Idiomatic crate to generate typed, structural application domain errors
 futures-util = { version = "0.3", features = ["futures-macro"] }  # diesel-async needs this for try_join!
 async-trait = "0.1"            # Async trait support for database repository traits
+tower = "0.5.3"
+colored = "3.1.1"
+

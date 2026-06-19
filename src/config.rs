@@ -6,9 +6,15 @@ use std::sync::OnceLock;
 pub struct AppConfig {
     #[serde(rename = "server_port", default = "default_port")]
     pub server_port: u16,
-    
+
     #[serde(rename = "database_url")]
     pub database_url: String,
+
+    #[serde(rename = "env", default = "default_env")]
+    pub env: String,
+}
+fn default_env() -> String {
+    "production".to_string()
 }
 
 fn default_port() -> u16 {

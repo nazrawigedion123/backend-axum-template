@@ -1,4 +1,3 @@
-
 // src/internal/constant/dto.rs
 use serde::{Deserialize, Serialize};
 
