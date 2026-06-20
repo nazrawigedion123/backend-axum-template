@@ -18,10 +18,8 @@ dotenvy = "0.15"                # Utility to read local .env files automatically
 tracing = "0.1"                 # Core logging macros (info!, error!, warn!, etc.)
 tracing-subscriber = { version = "0.3", features = ["json", "env-filter"] } # Formats logs into structured JSON
 
-# --- Database & Asynchronous ORM Layer (Sqlc Replacement) ---
-diesel = { version = "2.2", features = ["postgres", "chrono", "uuid"] } # Query builder & Type safety engine
-diesel-async = { version = "0.5", features = ["postgres", "bb8"] }      # Async extensions for Diesel using BB8 connection pooling
-
+# SQLx replaces Diesel
+sqlx = { version = "0.8", features = ["postgres", "runtime-tokio", "tls-rustls", "macros", "uuid", "chrono"] }
 # --- Data Types & Utilities ---
 chrono = { version = "0.4", features = ["serde"] } # Time parsing mapped directly to Postgres/Serde
 uuid = { version = "1.11", features = ["v4", "serde"] } # ID generation mapped directly to Postgres/Serde

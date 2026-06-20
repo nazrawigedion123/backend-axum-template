@@ -2,7 +2,7 @@
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-use crate::internal::storage::user_storage::UserModel;
+use crate::internal::constant::{UserModel};
 
 #[derive(Debug, Deserialize, ToSchema)]
 pub struct CreateUserRequest {
@@ -10,7 +10,7 @@ pub struct CreateUserRequest {
     pub email: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ApiResponse<T> {
     pub success: bool,
     pub data: T,

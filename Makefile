@@ -14,24 +14,24 @@ help: ## Show this help message with available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 db-status: ## Check the status of database migrations
-	diesel migration list
+	sqlx migrate info
 
 migration-create: ## Create a new up/down SQL migration. Usage: make migration-create name=create_users
 	@if [ -z "$(name)" ]; then \
 		echo "Error: 'name' variable is required. Example: make migration-create name=create_users"; \
 		exit 1; \
 	fi
-	diesel migration generate $(name) --migration-dir=migrations
+	sqlx migrate add -r $(name)
 
-migration-up: ## Run all pending database migrations (Generates schema.rs automatically)
-	diesel migration run --migration-dir=migrations
+migration-up: ## Run all pending database migrations
+	sqlx migrate run
 
 migration-down: ## Rollback the single most recent migration step
-	diesel migration revert --migration-dir=migrations
+	sqlx migrate revert
 
 migration-redo: ## Rollback and re-run the latest migration step (Useful during local development)
-	diesel migration redo --migration-dir=migrations
+	sqlx migrate revert && sqlx migrate run
 
-db-setup: ## Run initial setup, create database, and execute any existing migrations
-	diesel database setup --migration-dir=migrations
-
+db-setup: ## Create database and execute all existing migrations
+	sqlx database create
+	sqlx migrate run

@@ -2,7 +2,7 @@
 use crate::internal::constant::errors::AppError;
 use crate::internal::module::UserService;
 use crate::internal::storage::UserRepository;
-use crate::internal::storage::user_storage::{NewUserModel, UserModel};
+use crate::internal::constant::{NewUserModel, UserModel};
 use std::sync::Arc;
 use uuid::Uuid;
 

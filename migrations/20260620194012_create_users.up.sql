@@ -1,4 +1,4 @@
--- Your SQL goes here
+-- Add up migration script here
 -- migrations/xxxxxx_create_users/up.sql
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -7,4 +7,3 @@ CREATE TABLE users (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-

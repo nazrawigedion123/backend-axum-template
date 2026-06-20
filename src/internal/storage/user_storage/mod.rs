@@ -1,96 +1,53 @@
-use chrono::{DateTime, Utc};
-use diesel::{ExpressionMethods, Insertable, QueryDsl, Queryable, Selectable};
-use diesel_async::AsyncPgConnection;
-use diesel_async::pooled_connection::bb8::Pool;
-use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
+
 use uuid::Uuid;
-
+use sqlx::PgPool;
 use crate::internal::storage::UserRepository;
-use crate::internal::storage::generated::schema;
+use crate::internal::constant::{UserModel,NewUserModel};
 
-// Define an alias for our high-performance bb8 connection pool
-pub type DbPool = Pool<AsyncPgConnection>;
 
-/// Database representation of a User record
-#[derive(Debug, Clone, Queryable, Selectable, Serialize, Deserialize, ToSchema)]
-#[diesel(table_name = schema::users)]
-#[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct UserModel {
-    pub id: Uuid,
-    pub username: String,
-    pub email: String,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+
+
+
+
+
+
+
+
+pub struct PostgresUserRepository {
+    pool: PgPool,
 }
 
-/// Structural representation for inserting a new user
-#[derive(Debug, Clone, Insertable, Deserialize)]
-#[diesel(table_name = schema::users)]
-pub struct NewUserModel {
-    pub username: String,
-    pub email: String,
-}
-
-/// Concrete implementation wrapper holding the thread-safe connection pool
-pub struct DieselUserRepository {
-    pub pool: DbPool,
-}
-
-impl DieselUserRepository {
-    pub fn new(pool: DbPool) -> Self {
+impl PostgresUserRepository {
+    pub fn new(pool: PgPool) -> Self {
         Self { pool }
     }
 }
 
 #[async_trait::async_trait]
-impl UserRepository for DieselUserRepository {
-    async fn find_by_id(
-        &self,
-        target_id: Uuid,
-    ) -> Result<Option<UserModel>, diesel::result::Error> {
-        use crate::internal::storage::generated::schema::users::dsl::*;
-        use diesel_async::RunQueryDsl;
+impl UserRepository for PostgresUserRepository {
+    async fn find_by_id(&self, id: Uuid) -> Result<Option<UserModel>, sqlx::Error> {
+        let user = sqlx::query_as::<_, UserModel>(
+            "SELECT id, username, email, created_at, updated_at FROM users WHERE id = $1"
+        )
+        .bind(id)
+        .fetch_optional(&self.pool)
+        .await?;
 
-        // Trace logging automatically inherits request IDs via the async context
-        tracing::debug!(%target_id, "Executing find_by_id query in database context");
-
-        let mut conn = self
-            .pool
-            .get()
-            .await
-            .map_err(|_| diesel::result::Error::RollbackTransaction)?;
-
-        let result = users
-            .filter(id.eq(target_id))
-            .first::<UserModel>(&mut conn)
-            .await;
-
-        match result {
-            Ok(user) => Ok(Some(user)),
-            Err(diesel::result::Error::NotFound) => Ok(None),
-            Err(e) => Err(e),
-        }
+        Ok(user)
     }
 
-    async fn create_user(
-        &self,
-        new_user: NewUserModel,
-    ) -> Result<UserModel, diesel::result::Error> {
-        use crate::internal::storage::generated::schema::users::dsl::*;
-        use diesel_async::RunQueryDsl;
+    async fn create_user(&self, new_user: NewUserModel) -> Result<UserModel, sqlx::Error> {
+        let user = sqlx::query_as::<_, UserModel>(
+            "INSERT INTO users (username, email) 
+             VALUES ($1, $2) 
+             RETURNING id, username, email, created_at, updated_at"
+        )
+        .bind(new_user.username)
+        .bind(new_user.email)
+        .fetch_one(&self.pool)
+        .await?;
 
-        tracing::info!(username = %new_user.username, "Persisting new record into user storage");
-
-        let mut conn = self
-            .pool
-            .get()
-            .await
-            .map_err(|_| diesel::result::Error::RollbackTransaction)?;
-
-        diesel::insert_into(users)
-            .values(&new_user)
-            .get_result::<UserModel>(&mut conn)
-            .await
+        Ok(user)
     }
 }
+

@@ -10,8 +10,9 @@ use utoipa::ToSchema;
 
 #[derive(Debug, Error)]
 pub enum AppError {
-    #[error("Internal database tracking anomaly encountered")]
-    DatabaseError(#[from] diesel::result::Error),
+    // 1. Replaced diesel::result::Error with sqlx::Error
+    #[error("Internal database tracking anomaly encountered: {0}")]
+    DatabaseError(#[from] sqlx::Error),
 
     #[error("Requested resource for entity could not be verified")]
     NotFound,
@@ -19,7 +20,6 @@ pub enum AppError {
     #[error("Validation failed: {0}")]
     ValidationError(String),
 }
-
 #[derive(Debug, Serialize, ToSchema)]
 pub struct ErrorResponse {
     pub success: bool,

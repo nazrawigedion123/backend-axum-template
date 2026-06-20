@@ -6,12 +6,11 @@ use crate::docs::ApiDoc;
 use crate::internal::handler::user_handler::UserHandler;
 use crate::internal::module::UserService;
 use crate::internal::module::user_service::DefaultUserService;
-use crate::internal::storage::user_storage::DieselUserRepository;
+use crate::internal::storage::user_storage::PostgresUserRepository;
 use axum::Router;
 use axum_governor::{GovernorConfigBuilder, GovernorLayer, Quota, extractor::PeerIp, nz};
 use colored::Colorize;
-use diesel_async::AsyncPgConnection;
-use diesel_async::pooled_connection::bb8::Pool;
+
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::net::TcpListener;
@@ -20,10 +19,25 @@ use tower_http::trace::TraceLayer;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
+use sqlx::postgres::PgPoolOptions;
+
+pub async fn init_db(database_url: &str) -> sqlx::PgPool {
+    let pool = PgPoolOptions::new()
+        .max_connections(5)
+        .connect(database_url)
+        .await
+        .expect("Failed to connect to Postgres via SQLx");
+
+    // Optional: Automatically run pending migrations on startup
+    
+
+    pool
+}
+
 /// Layer 1: Storage Layer Container
 #[derive(Clone)]
 pub struct Storage {
-    pub user_repo: Arc<DieselUserRepository>,
+    pub user_repo: Arc<PostgresUserRepository>,
 }
 
 /// Layer 2: Business Domain Modules Layer Container
@@ -55,20 +69,10 @@ impl AppInitiator {
             "  {} Initializing asynchronous connection pool adapters...",
             "⏳".yellow()
         );
-        let manager = diesel_async::pooled_connection::AsyncDieselConnectionManager::<
-            AsyncPgConnection,
-        >::new(&cfg.database_url);
-
-        let pool = Pool::builder()
-            .max_size(10)
-            .build(manager)
-            .await
-            .unwrap_or_else(|err| {
-                panic!("CRITICAL INFRASTRUCTURE FAILURE: Failed to create database connection pool: {err}");
-            });
-
-        // tracing::info!("Database connection pool established successfully");
-
+      
+        // Use .await here to resolve the Future into the actual PgPool
+        let pool = init_db(&cfg.database_url).await;
+        
         // Replace tracing::info with stylized println
         println!(
             "  {} Database: {}",
@@ -76,8 +80,11 @@ impl AppInitiator {
             "PostgreSQL connected".green()
         );
         println!("  {} Connection pool established successfully", "✓".green());
+        
         // --- Step 1: Initialize Storage Tier ---
-        let user_repo = Arc::new(DieselUserRepository::new(pool));
+        // Now pool is a valid PgPool instance and can be passed to your repository
+        let user_repo = Arc::new(PostgresUserRepository::new(pool));
+
         let storage = Storage {
             user_repo: user_repo.clone(),
         };
@@ -138,6 +145,8 @@ impl AppInitiator {
             .allow_headers(Any);
         //set up ratelimiter
         let config_rate_limiter = GovernorConfigBuilder::default()
+            .with_extractor(PeerIp::default())
+            .expect_connect_info()
             .quota_default(Quota::requests_per_second(nz!(50u32)))
             .finish()
             .unwrap();
@@ -176,6 +185,6 @@ impl AppInitiator {
             "════════════════════════════════════════════════════".dimmed()
         );
 
-        axum::serve(listener, app).await
+        axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>()).await
     }
 }

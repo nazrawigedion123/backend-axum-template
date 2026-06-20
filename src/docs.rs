@@ -10,7 +10,7 @@ use utoipa::OpenApi;
         schemas(
             crate::internal::constant::dto::CreateUserRequest,
             crate::internal::constant::dto::UserResponse,
-            crate::internal::storage::user_storage::UserModel,
+            crate::internal::constant::UserModel,
             crate::internal::constant::errors::ErrorResponse
         )
     ),
