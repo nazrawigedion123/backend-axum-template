@@ -30,6 +30,15 @@ pub async fn get_user_route(
     handler.get_user(target_uuid).await
 }
 // --- Trait and Concrete Implementations ---
+// 
+// 
+ pub async fn get_user_by_username_route(
+    Path(username): Path<String>,
+    State(handler): State<Arc<dyn UserHandlerTrait>>,
+) -> Result<Json<ApiResponse<UserModel>>, AppError> {
+  
+    handler.get_user_by_username(username).await
+}
 
 #[async_trait::async_trait]
 pub trait UserHandlerTrait: Send + Sync {
@@ -39,6 +48,7 @@ pub trait UserHandlerTrait: Send + Sync {
     ) -> Result<(StatusCode, Json<ApiResponse<UserModel>>), AppError>;
 
     async fn get_user(&self, id: Uuid) -> Result<Json<ApiResponse<UserModel>>, AppError>;
+     async fn get_user_by_username(&self, username:String) -> Result<Json<ApiResponse<UserModel>>, AppError> ;
 }
 
 pub struct UserHandler {
@@ -77,6 +87,17 @@ impl UserHandlerTrait for UserHandler {
         tracing::info!(%id, "HTTP Request received: Get User by ID");
 
         let user = self.user_service.get_user_by_id(id).await?;
+
+        Ok(Json(ApiResponse {
+            success: true,
+            data: user,
+        }))
+    }
+    
+    async fn get_user_by_username(&self, username:String) -> Result<Json<ApiResponse<UserModel>>, AppError> {
+        tracing::info!(%username, "HTTP Request received: Get User by USER NAME");
+
+        let user = self.user_service.get_user_by_username(username).await?;
 
         Ok(Json(ApiResponse {
             success: true,

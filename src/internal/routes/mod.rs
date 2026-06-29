@@ -36,7 +36,7 @@ impl HttpMethod {
 }
 
 pub fn configure_routes(handlers: &Handlers) -> Router {
-    register_routes(user_routes::routes::register_user_routes(handlers))
+    register_routes(user_routes::register_user_routes(handlers))
 }
 
 // pub fn register_routes(routes: Vec<Route>) -> Router {

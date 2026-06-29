@@ -4,7 +4,8 @@ use utoipa::OpenApi;
 #[openapi(
     paths(
         create_user,
-        get_user
+        get_user,
+        get_user_by_username,
     ),
     components(
         schemas(
@@ -48,3 +49,19 @@ pub async fn create_user() {}
     tag = "users"
 )]
 pub async fn get_user() {}
+
+#[utoipa::path(
+    get,
+    path = "/api/v1/users/get-by-username/{username}",
+    params(
+        ("username" = String, Path, description = "User Name")
+    ),
+    responses(
+        (status = 200, description = "User fetched successfully", body = crate::internal::constant::dto::UserResponse),
+        (status = 400, description = "Invalid UUID format", body = crate::internal::constant::errors::ErrorResponse),
+        (status = 404, description = "User not found", body = crate::internal::constant::errors::ErrorResponse),
+        (status = 500, description = "Internal database error", body = crate::internal::constant::errors::ErrorResponse)
+    ),
+    tag = "users"
+)]
+pub async fn get_user_by_username() {}

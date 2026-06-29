@@ -28,6 +28,14 @@ impl UserService for DefaultUserService {
             None => Err(AppError::NotFound),
         }
     }
+    async fn get_user_by_username(&self, username:String) -> Result<UserModel, AppError> {
+        tracing::debug!(%username, "Executing domain rule: get_user_by_username verification checks");
+
+        match self.user_repo.find_by_username(username).await? {
+            Some(user) => Ok(user),
+            None => Err(AppError::NotFound),
+        }
+    }
 
     async fn register_new_user(
         &self,
