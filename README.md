@@ -28,6 +28,9 @@ src/
 ├── config.rs               # AppConfig — loads env vars into a typed struct (envy + dotenvy)
 ├── docs.rs                 # OpenAPI 3.0 spec generation via utoipa
 ├── initiator.rs            # Composition root — wires DI: repos → services → handlers
+├── platform/               # Infrastructure concerns
+│   ├── mod.rs
+│   └── logger.rs           # tracing-subscriber JSON logger setup
 └── internal/
     ├── mod.rs
     ├── constant/           # Shared domain types
@@ -48,9 +51,6 @@ src/
     │   ├── mod.rs
     │   └── user_service/
     │       └── mod.rs      # DefaultUserService — create/get user logic
-    ├── platform/           # Infrastructure concerns
-    │   ├── mod.rs
-    │   └── logger.rs       # tracing-subscriber JSON logger setup
     ├── routes/             # Route registration
     │   ├── mod.rs
     │   └── user_routes/
