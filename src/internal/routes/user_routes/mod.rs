@@ -1,5 +1,5 @@
 use crate::initiator::Handlers;
-use crate::internal::handler::middleware::{append_trace_header_middleware, dummy_auth_middleware};
+use crate::internal::handler::middleware::{append_trace_header_middleware};
 use crate::internal::handler::{UserHandlerTrait, create_user_route, get_user_route,get_user_by_username_route};
 use crate::internal::routes::{HttpMethod, Route};
 use axum::{

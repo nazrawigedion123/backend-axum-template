@@ -3,6 +3,8 @@ pub mod config;
 pub mod docs;
 pub mod initiator;
 pub mod internal;
+pub mod platform;
+
 
 use initiator::AppInitiator;
 

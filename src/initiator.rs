@@ -1,6 +1,6 @@
 // src/initiator.rs
 use crate::internal;
-
+use crate::platform;
 use crate::config::AppConfig;
 use crate::docs::ApiDoc;
 use crate::internal::handler::user_handler::UserHandler;
@@ -107,7 +107,7 @@ impl AppInitiator {
     }
 
     pub async fn initiate() -> std::io::Result<()> {
-        internal::platform::logger::init_logger();
+        platform::logger::init_logger();
         println!(
             "{}",
             "════════════════════════════════════════════════════".dimmed()
