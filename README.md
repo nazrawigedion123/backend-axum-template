@@ -20,6 +20,47 @@ HTTP Request
 
 Dependency injection is wired explicitly in `src/initiator.rs`: Storage → Modules → Handlers, with each layer receiving its dependencies via `Arc<dyn Trait>`.
 
+## Project Structure
+
+```
+src/
+├── main.rs                 # Entry point — initializes logger, builds app, starts server
+├── config.rs               # AppConfig — loads env vars into a typed struct (envy + dotenvy)
+├── docs.rs                 # OpenAPI 3.0 spec generation via utoipa
+├── initiator.rs            # Composition root — wires DI: repos → services → handlers
+└── internal/
+    ├── mod.rs
+    ├── constant/           # Shared domain types
+    │   ├── mod.rs
+    │   ├── dto.rs          # Request/response DTOs
+    │   ├── errors.rs       # AppError enum + IntoResponse impl for HTTP mapping
+    │   └── model/
+    │       ├── mod.rs
+    │       └── user.rs     # Domain models (UserModel, NewUserModel)
+    ├── handler/            # HTTP layer — request parsing, response writing
+    │   ├── mod.rs
+    │   ├── user_handler/
+    │   │   └── mod.rs      # UserHandler — route functions (create, get)
+    │   └── middleware/
+    │       ├── mod.rs
+    │       └── sample.rs   # Dummy auth middleware (x-api-token check)
+    ├── module/             # Business logic layer — validation, orchestration
+    │   ├── mod.rs
+    │   └── user_service/
+    │       └── mod.rs      # DefaultUserService — create/get user logic
+    ├── platform/           # Infrastructure concerns
+    │   ├── mod.rs
+    │   └── logger.rs       # tracing-subscriber JSON logger setup
+    ├── routes/             # Route registration
+    │   ├── mod.rs
+    │   └── user_routes/
+    │       └── mod.rs      # User endpoint route registration
+    └── storage/            # Database access layer — SQLx queries
+        ├── mod.rs
+        └── user_storage/
+            └── mod.rs      # PostgresUserRepository — SQLx query impls
+```
+
 ## Features
 
 - **Axum 0.8** — async routing, state extraction, JSON handling, middleware
