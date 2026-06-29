@@ -1,6 +1,6 @@
 # Backend Axum Template
 
-A production-grade Rust backend API template built with [Axum](https://github.com/tokio-rs/axum), featuring a clean three-layer architecture with dependency injection, async PostgreSQL via Diesel, and structured JSON logging.
+A production-grade Rust backend API template built with [Axum](https://github.com/tokio-rs/axum), featuring a clean three-layer architecture with dependency injection, async PostgreSQL via SQLx, and structured JSON logging.
 
 ## Architecture
 
@@ -13,7 +13,7 @@ HTTP Request
      |
 [ Service Layer ]   src/internal/module/     — Business logic & validation
      |
-[ Repository ]      src/internal/storage/    — Database access (Diesel)
+[ Repository ]      src/internal/storage/    — Database access (SQLx)
      |
 [ PostgreSQL ]
 ```
@@ -65,19 +65,19 @@ src/
 
 - **Axum 0.8** — async routing, state extraction, JSON handling, middleware
 - **Tokio** — multi-threaded async runtime
-- **PostgreSQL + Diesel 2.2** — async queries via `diesel-async` with BB8 connection pooling
+- **PostgreSQL + SQLx 0.8** — async queries with compile-time checked SQL and connection pooling
 - **Three-layer architecture** — Storage (repositories), Modules (services), Handlers (controllers)
 - **Repository & Service patterns** — trait-based abstractions, mockable for testing
 - **Structured JSON logging** — via `tracing` + `tracing-subscriber` (env-filter)
 - **Environment-based config** — via `envy` + `dotenvy` (`.env` file support)
 - **Typed error handling** — `AppError` enum with automatic HTTP status code mapping via `IntoResponse`
-- **Diesel migrations** — with `Makefile` convenience targets
+- **SQLx migrations** — with `Makefile` convenience targets
 
 ## Prerequisites
 
 - Rust (edition 2024 compatible)
 - PostgreSQL 16 (or Docker)
-- Diesel CLI: `cargo install diesel_cli --no-default-features --features postgres`
+- SQLx CLI: `cargo install sqlx-cli`
 
 ## Getting Started
 
@@ -103,6 +103,7 @@ The server starts on `http://127.0.0.1:8080`.
 |---|---|---|
 | `SERVER_PORT` | `8080` | Port to bind the HTTP server |
 | `DATABASE_URL` | (required) | PostgreSQL connection string |
+| `ENV` | `production` | Application environment |
 | `RUST_LOG` | `info,backend_axum_template=debug` | Tracing/logging level filter |
 
 ## API Endpoints
@@ -111,6 +112,7 @@ The server starts on `http://127.0.0.1:8080`.
 |---|---|---|---|
 | `POST` | `/api/v1/users` | Create a new user | No |
 | `GET` | `/api/v1/users/{id}` | Get user by UUID | `x-api-token` header required |
+| `GET` | `/api/v1/users/get-by-username/{username}` | Get user by username | No |
 
 ### Create User
 
